@@ -1,0 +1,38 @@
+{
+    "name": "castor/queue",
+    "description": "A simple queue abstraction for your PHP projects",
+    "minimum-stability": "stable",
+    "license": "MIT",
+    "keywords": ["php", "queue", "producer", "consumer", "factory", "php7", "php8"],
+    "authors": [
+        {
+            "name": "Matias Navarro Carter",
+            "email": "mnavarrocarter@gmail.com"
+        }
+    ],
+    "config": {
+        "platform": {
+            "php": "7.4"
+        }
+    },
+    "require": {
+        "php": ">=7.4",
+        "castor/uri": "^0.2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Castor\\Queue\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Castor\\Queue\\": "tests"
+        }
+    },
+    "require-dev": {
+        "roave/security-advisories": "dev-latest",
+        "friendsofphp/php-cs-fixer": "^3.0",
+        "phpunit/phpunit": "^9.5",
+        "vimeo/psalm": "^4.6"
+    }
+}
