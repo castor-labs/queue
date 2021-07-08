@@ -17,12 +17,11 @@ declare(strict_types=1);
 namespace Castor\Queue;
 
 use Castor\Str;
-use Exception;
 
 /**
  * Class UnsupportedScheme.
  */
-class UnsupportedScheme extends Exception
+class UnsupportedScheme extends CreationError
 {
     /**
      * @param string ...$supportedSchemes

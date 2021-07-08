@@ -28,6 +28,8 @@ interface Factory
      *
      * @throws UnsupportedScheme if the factory does not support creating a driver
      *                           out of that scheme
+     * @throws CreationError     when there is a problem creating the driver.
+     *                           Implementors MUST wrap creation errors in this exception.
      */
     public function create(Uri $uri): Driver;
 }

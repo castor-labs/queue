@@ -19,8 +19,8 @@ namespace Castor\Queue;
 use RuntimeException;
 
 /**
- * Class DriverError.
+ * Class CreationError.
  */
-class DriverError extends RuntimeException
+class CreationError extends RuntimeException
 {
 }
