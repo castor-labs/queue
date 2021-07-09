@@ -41,7 +41,11 @@ interface Driver
      * For instance, the InMemoryDriver will return from consume once it has
      * handled all the messages that has in memory.
      *
-     * @psalm-param callable(string):void $callback
+     * The callback takes the message as a string and a cancellation callable. The
+     * cancellation callable can be used to stop message consumption in a long
+     * process.
+     *
+     * @psalm-param callable(string, callable():void):void $callback
      *
      * @throws DriverError when the messages cannot be retrieved for consumption
      *                     Implementors MUST wrap original exceptions in this type

@@ -48,15 +48,24 @@ final class InMemoryDriver implements Driver
     public function consume(string $queue, callable $callback): void
     {
         $messages = $this->messages[$queue] ?? [];
-        foreach ($messages as $message) {
-            $callback($message);
+        $isCancelled = false;
+        $cancel = static function () use (&$isCancelled): void {
+            $isCancelled = true;
+        };
+        while ($message = array_shift($messages)) {
+            $callback($message, $cancel);
+            if (true === $isCancelled) {
+                break;
+            }
         }
-        $this->messages[$queue] = [];
+        $this->messages[$queue] = $messages;
     }
 
     /**
      * Clears the specified queue. If no queue is provided, all messages in all
      * queues are cleared.
+     *
+     * @deprecated To be removed in 1.0.0. Use the purge method instead.
      */
     public function clear(string $queue = null): void
     {
@@ -66,5 +75,21 @@ final class InMemoryDriver implements Driver
             return;
         }
         $this->messages = [];
+    }
+
+    /**
+     * Purges the messages from a queue.
+     */
+    public function purge(string $queue): void
+    {
+        $this->messages[$queue] = [];
+    }
+
+    /**
+     * Counts the messages in a queue.
+     */
+    public function count(string $queue): int
+    {
+        return count($this->messages[$queue] ?? []);
     }
 }

@@ -12,11 +12,74 @@ flexible and can accommodate complex drivers by allowing to pass options in the 
 Factories are intended to be registered in your application using a Dependency Injection framework. For instance, you
 can bind `Castor\Queue\CompositeFactory` to the `Castor\Queue\Factory` class and register all the sub factories your
 application supports. You can easily swap the active implementation by changing the URI provided to the create method.
-The composite factory will find te first driver supported by the passed uri scheme.
+The composite factory will find te first driver supported by the passed URI scheme.
+
+```php
+<?php
+
+use Castor\Net\Uri;
+use Castor\Queue;
+
+$uri = Uri::parse('amqp://localhost');
+$factory = new Queue\CompositeFactory();
+$factory->add(new Queue\InMemoryFactory());
+$factory->add(new Queue\AmqpFactory());
+$driver = $factory->create($uri); // This will return a AmqpDriver instance.
+```
+
+Once you have a basic driver, you can publish or consume messages.
+
+### Publishing Messages
+
+Publishing a message is as simple as passing a queue name and the message in a string form using the `publish` method.
+
+```php
+<?php
+
+use Castor\Queue;
+
+/** @var Queue\Driver $driver */
+$driver->publish('queue', 'This is a message to be sent in the queue');
+```
+
+### Consuming Messages
+
+Messages can be consumed using the `Castor\Queue\Driver::consume` method. This method takes two arguments: a string with
+the queue name, and a callable that will process a message. The callable in turn takes the message as the first argument
+and another callable for cancelling the consuming process. 
+
+```php
+<?php
+
+use Castor\Queue;
+
+/** @var Queue\Driver $driver */
+$driver->consume('queue', static function (string $message, callable $cancel) {
+    echo $message.PHP_EOL; // This will print the message for every message.
+});
+```
+
+Cancelling a consumer is designed to stop processing messages and return from the `consume` function. You can use the
+cancellation callable to stop the consuming process upon some conditions, like memory limits or number of
+messages consumed.
+
+```php
+<?php
+
+use Castor\Queue;
+
+/** @var Queue\Driver $driver */
+$driver->consume('queue', static function (string $message, callable $cancel) {
+    if ($message === 'cancel-me') {
+        $cancel();
+    }
+    echo $message.PHP_EOL;
+});
+```
 
 ## Design Principles
 
-The abstractions are intentionally simplified to support most common and basic operations. For example, the main
+The abstractions are intentionally simplified to support the most common and basic operations. For example, the main
 interface `Castor\Queue\Driver` defines only two methods: `publish` and `consume`.
 
 If you need capabilities specific to your queue implementation, it is most likely that the implementation provides
@@ -80,19 +143,21 @@ class ConsumeLimitDriver implements Driver
     public function consume(string $queue, callable $callback) : void
     {
         $count = 0;
-        $limiter = function (string $message) use ($callback, $count) {
-            $callback($message); // Process the message.
+        // We wrap the original callback in our own callback
+        $limiter = function (string $message, callable $cancel) use ($callback, &$count) {
+            $callback($message); // Process the message passing the original callback.
             $count++;
             if ($this->limit <= $count) {
-                exit(1);
+                $cancel();
             }
         };
+        // We pass the modified callback to the decorated driver.
         $this->driver->consume($queue, $limiter);
     }
 }
 ```
 
-You can a similar implementation to cut execution on memory limits.
+You can build a similar implementation to cut execution on memory limits.
 
 ### 3. Always provide defaults
 

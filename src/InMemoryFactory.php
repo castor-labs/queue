@@ -31,6 +31,7 @@ final class InMemoryFactory implements Factory
     public function create(Uri $uri): Driver
     {
         $scheme = $uri->getScheme();
+
         if (self::SCHEME !== $scheme) {
             throw UnsupportedScheme::create($scheme, __CLASS__, self::SCHEME);
         }
